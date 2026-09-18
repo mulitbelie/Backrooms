@@ -1,0 +1,22 @@
+.vscode/
+# Unity
+/[Ll]ibrary/
+/[Tt]emp/
+/[Ll]ogs/
+/[Uu]serSettings/
+
+# IDE
+.vs/
+.vscode/
+*.sln
+*.csproj
+*.user
+*.suo
+
+# Build输出
+/Build/
+/Builds/
+
+# OS
+.DS_Store
+Thumbs.db
