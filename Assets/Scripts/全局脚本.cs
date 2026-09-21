@@ -38,6 +38,7 @@ public class 全局脚本 : MonoBehaviour
 
         玩家 = 生成的玩家;
         生成的玩家.GetComponent<基础移动控制>().摇杆配置=玩家画布.摇杆;
+        玩家画布.初始化玩家引用();
     }
 
     // Update is called once per frame
