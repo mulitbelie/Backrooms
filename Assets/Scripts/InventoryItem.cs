@@ -16,11 +16,26 @@ public class InventoryItem : MonoBehaviour, IInventoryItem, IInteractable
     public string itemName = "物品";
     public Sprite itemImage;
     [Header("交互提示")]
-    public string 交互提示文本 = "拾取";
+    public string 交互提示文本 = "pick up";
 
     public string Name => itemName;
     public Sprite Image => itemImage;
-    public string 交互提示 => $"{交互提示文本} {itemName}";
+
+    public string 交互提示 => $"{平台工具.按键提示} to {交互提示文本} {itemName}";
+
+    public float triggerRadius = 1.5f;
+
+    void Awake()
+    {
+        SphereCollider trigger = gameObject.GetComponent<SphereCollider>();
+        if (trigger == null)
+            trigger = gameObject.AddComponent<SphereCollider>();
+        trigger.isTrigger = true;
+        trigger.radius = triggerRadius;
+        if(triggerRadius < 1){
+            triggerRadius = 1;
+        }
+    }
 
     public virtual void OnPickup()
     {

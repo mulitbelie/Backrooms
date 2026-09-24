@@ -14,9 +14,51 @@ public class 触摸视角控制 : MonoBehaviour
     [Header("垂直旋转（像素 → 度）")]
     public float 垂直灵敏度 = 2f;
 
+    [Header("默认限制（度）")]
+    [Range(0f, 180f)] public float 默认水平半角 = 180f;
+    [Range(0f, 90f)]  public float 默认垂直半角 = 60f;
+
+    [Header("衣柜中限制（WardrobeController 自动设置）")]
+    [Range(0f, 180f)] public float 衣柜水平半角 = 60f;
+    [Range(0f, 90f)]  public float 衣柜垂直半角 = 60f;
+
+    private float 水平旋转;
     private float 垂直旋转;
     private int 当前触摸索引 = -1;
     private readonly HashSet<int> 禁用触摸点 = new HashSet<int>();
+
+    public float 当前水平半角 { get; private set; }
+    public float 当前垂直半角 { get; private set; }
+
+    public void 收紧为衣柜(Transform 根节点)
+    {
+        当前水平半角 = 衣柜水平半角;
+        当前垂直半角 = 衣柜垂直半角;
+        重置旋转计数(根节点);
+    }
+
+    public void 恢复默认(Transform 根节点)
+    {
+        当前水平半角 = 默认水平半角;
+        当前垂直半角 = 默认垂直半角;
+        重置旋转计数(根节点);
+    }
+
+    public void 重置旋转计数(Transform 根节点)
+    {
+        水平旋转 = 0f;
+        垂直旋转 = 0f;
+        if (玩家模块 != null && 玩家模块 != 根节点)
+            玩家模块.localRotation = Quaternion.identity;
+        if (上下滑动模块 != null && 上下滑动模块 != 根节点)
+            上下滑动模块.localRotation = Quaternion.identity;
+    }
+
+    void Awake()
+    {
+        当前水平半角 = 默认水平半角;
+        当前垂直半角 = 默认垂直半角;
+    }
 
     void Start()
     {
@@ -61,14 +103,25 @@ public class 触摸视角控制 : MonoBehaviour
         float 水平增量 = delta.x * 水平灵敏度;
         float 垂直增量 = -delta.y * 垂直灵敏度;
 
-        垂直旋转 += 垂直增量;
-        垂直旋转 = Mathf.Clamp(垂直旋转, -60f, 60f);
+        float 实际水平增量 = 截断增量(水平旋转, 水平增量, 当前水平半角);
+        float 实际垂直增量 = 截断增量(垂直旋转, 垂直增量, 当前垂直半角);
+
+        水平旋转 += 实际水平增量;
+        垂直旋转 += 实际垂直增量;
 
         if (上下滑动模块 != null)
             上下滑动模块.localRotation = Quaternion.Euler(垂直旋转, 0f, 0f);
 
         if (玩家模块 != null)
-            玩家模块.Rotate(Vector3.up, 水平增量);
+            玩家模块.Rotate(Vector3.up, 实际水平增量);
+    }
+
+    float 截断增量(float 当前值, float 增量, float 半角)
+    {
+        float 目标值 = 当前值 + 增量;
+        if (目标值 > 半角) return 半角 - 当前值;
+        if (目标值 < -半角) return -半角 - 当前值;
+        return 增量;
     }
 
     Touch 找到右侧触摸点()

@@ -24,11 +24,6 @@ public class 物品拾取检测 : MonoBehaviour
     void Update()
     {
         刷新可拾取物品();
-
-        if (当前可拾取物品 != null && Input.GetKeyDown(pickKey))
-        {
-            执行拾取();
-        }
     }
 
     void 刷新可拾取物品()
@@ -44,6 +39,7 @@ public class 物品拾取检测 : MonoBehaviour
         if (item == null) return;
         if (!string.IsNullOrEmpty(itemTag) && !item.CompareTag(itemTag)) return;
         if (!item.gameObject.activeSelf) return;
+        if (!LockableInteractable.IsAccessible(item)) return;
 
         当前可拾取物品 = item;
     }

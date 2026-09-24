@@ -49,7 +49,12 @@ public class 基础移动控制 : MonoBehaviour
     private bool 是否在下蹲;
     private float 站立原始高度;
     private Vector3 站立原始中心;
+    private bool beCaught;//是否被抓住
+    private bool 被外部暂停;
 
+    public bool 是否被抓住 => beCaught;
+    public bool 被暂停 => beCaught || 被外部暂停;
+    public void 设置暂停(bool 值) { 被外部暂停 = 值; }
     void Start()
     {
         角色控制器组件=GetComponent<CharacterController>();
@@ -85,6 +90,7 @@ public class 基础移动控制 : MonoBehaviour
 
     void Update()
     {
+        if (被暂停) return;
         地面检测();
         奔跑状态更新();
         速度平滑();
@@ -242,5 +248,10 @@ public class 基础移动控制 : MonoBehaviour
         if(摇杆方向.x!=0|| 摇杆方向.y != 0)
             return true;
         else return false;
+    }
+    public Vector3 BeCaught()//被抓住
+    {
+        beCaught = true;
+        return transform.position;//返回被抓住的位置，用于怪物追击
     }
 }

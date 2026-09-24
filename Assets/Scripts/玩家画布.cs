@@ -24,8 +24,6 @@ public class 玩家画布 : MonoBehaviour
     public Color 准星可拾取颜色 = new Color(1f, 0.9f, 0.3f, 1f);
 
     [Header("放下设置")]
-    public float 放下距离 = 1.5f;
-    public float 放下高度 = 0.5f;
     public Color 选中颜色 = new Color(1f, 0.9f, 0.3f, 1f);
     public Color 未选中颜色 = Color.white;
 
@@ -350,46 +348,11 @@ public class 玩家画布 : MonoBehaviour
         if (背包 == null || 全局脚本?.玩家 == null) return;
         if (index < 0 || index >= 背包.Count) return;
 
-        var item = 背包.GetItem(index);
-        if (item == null) return;
-
-        var mb = item as MonoBehaviour;
-        if (mb != null)
-        {
-            Transform 玩家 = 全局脚本.玩家.transform;
-            Vector3 预计水平位置 = 玩家.position + 玩家.forward * 放下距离;
-            Vector3 射线起点 = 预计水平位置 + Vector3.up * 100f;
-
-            int 地面层 = LayerMask.NameToLayer("地面");
-            LayerMask 地面遮罩 = 地面层 >= 0 ? (1 << 地面层) : ~0;
-
-            if (!Physics.Raycast(射线起点, Vector3.down, out RaycastHit hit, 200f, 地面遮罩))
-            {
-                return;
-            }
-
-            背包.RemoveItem(index);
-
-            Vector3 空中位置 = 预计水平位置 + Vector3.up * (hit.point.y + 20f);
-            mb.transform.position = 空中位置;
-            mb.transform.rotation = Quaternion.identity;
-            Physics.SyncTransforms();
-
-            Collider 物品碰撞体 = mb.GetComponentInChildren<Collider>();
-            if (物品碰撞体 != null)
-            {
-                float 碰撞体底面Y = 物品碰撞体.bounds.min.y;
-                float 偏移 = hit.point.y - 碰撞体底面Y + 0.02f;
-                mb.transform.position += Vector3.up * 偏移;
-            }
-            else
-            {
-                mb.transform.position = 预计水平位置 + Vector3.up * (hit.point.y + 0.5f);
-            }
-        }
+        // 位置对齐和落地全部由 Inventory.RemoveItem 统一处理
+        背包.RemoveItem(index);
 
         if (选中槽位 >= 背包.Count)
-            选中槽位 = 背包.Count - 1;
+            选中槽位 = Mathf.Max(0, 背包.Count - 1);
     }
 
     void 订阅背包事件()
