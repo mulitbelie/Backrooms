@@ -26,6 +26,12 @@ public class 角色状态管理 : MonoBehaviour
 
     void 更新状态()
     {
+        if (移动控制.被暂停)
+        {
+            当前状态 = 角色状态.站立;
+            return;
+        }
+
         bool 在地面 = 移动控制.角色地面检测;
         bool 在奔跑 = 移动控制.正在奔跑;
         bool 在下蹲 = 移动控制.正在下蹲;

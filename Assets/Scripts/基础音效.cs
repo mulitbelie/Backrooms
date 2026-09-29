@@ -70,6 +70,13 @@ public class 基础音效 : MonoBehaviour
 
     void 播放步态音()
     {
+        if (移动控制 != null && 移动控制.被暂停)
+        {
+            步态音效源.Stop();
+            步计时器 = 0;
+            return;
+        }
+
         bool 摇杆在用 = 移动控制 != null && 移动控制.检测角色拖动摇杆();
         bool 在地面 = 移动控制 != null && 移动控制.角色地面检测;
 

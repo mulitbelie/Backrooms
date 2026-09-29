@@ -9,10 +9,6 @@ public class 鼠标视角控制 : MonoBehaviour
     public float 水平灵敏度 = 10f;
     public float 垂直灵敏度 = 8f;
 
-    [Header("默认限制（度）")]
-    [Range(0f, 180f)] public float 默认水平半角 = 180f;
-    [Range(0f, 90f)]  public float 默认垂直半角 = 90f;
-
     [Header("衣柜中限制（WardrobeController 自动设置）")]
     [Range(0f, 180f)] public float 衣柜水平半角 = 60f;
     [Range(0f, 90f)]  public float 衣柜垂直半角 = 60f;
@@ -21,21 +17,20 @@ public class 鼠标视角控制 : MonoBehaviour
 
     private float 水平旋转;
     private float 垂直旋转;
-
-    public float 当前水平半角 { get; private set; }
-    public float 当前垂直半角 { get; private set; }
+    private float 水平半角 = float.MaxValue;
+    private float 垂直半角 = float.MaxValue;
 
     public void 收紧为衣柜(Transform 根节点)
     {
-        当前水平半角 = 衣柜水平半角;
-        当前垂直半角 = 衣柜垂直半角;
+        水平半角 = 衣柜水平半角;
+        垂直半角 = 衣柜垂直半角;
         重置旋转计数(根节点);
     }
 
     public void 恢复默认(Transform 根节点)
     {
-        当前水平半角 = 默认水平半角;
-        当前垂直半角 = 默认垂直半角;
+        水平半角 = float.MaxValue;
+        垂直半角 = float.MaxValue;
         重置旋转计数(根节点);
     }
 
@@ -47,12 +42,6 @@ public class 鼠标视角控制 : MonoBehaviour
             玩家模块.localRotation = Quaternion.identity;
         if (上下滑动模块 != null && 上下滑动模块 != 根节点)
             上下滑动模块.localRotation = Quaternion.identity;
-    }
-
-    void Awake()
-    {
-        当前水平半角 = 默认水平半角;
-        当前垂直半角 = 默认垂直半角;
     }
 
     void Start()
@@ -80,8 +69,8 @@ public class 鼠标视角控制 : MonoBehaviour
         float 水平增量 = 鼠标X * 水平灵敏度;
         float 垂直增量 = -鼠标Y * 垂直灵敏度;
 
-        float 实际水平增量 = 截断增量(水平旋转, 水平增量, 当前水平半角);
-        float 实际垂直增量 = 截断增量(垂直旋转, 垂直增量, 当前垂直半角);
+        float 实际水平增量 = 截断增量(水平旋转, 水平增量, 水平半角);
+        float 实际垂直增量 = 截断增量(垂直旋转, 垂直增量, 垂直半角);
 
         水平旋转 += 实际水平增量;
         垂直旋转 += 实际垂直增量;

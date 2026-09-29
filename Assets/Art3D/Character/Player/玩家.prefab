@@ -292,6 +292,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6939779568828318613}
+  - component: {fileID: 3034975377870194015}
   m_Layer: 0
   m_Name: "\u6444\u50CF\u673A\u652F\u67B6"
   m_TagString: Untagged
@@ -317,6 +318,27 @@ Transform:
   - {fileID: 7458591682218529809}
   m_Father: {fileID: 4389119380785771172}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &3034975377870194015
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5321318881134711843}
+  m_Enabled: 0
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: db9ad827bb79b7a4ab382d3652e196aa, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &5918861370456948581
 GameObject:
   m_ObjectHideFlags: 0
@@ -331,6 +353,7 @@ GameObject:
   - component: {fileID: 1615329516638912552}
   - component: {fileID: 4012713902288444430}
   - component: {fileID: 5307188131147696838}
+  - component: {fileID: 5007556177162207937}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -472,8 +495,6 @@ MonoBehaviour:
   "\u4E0A\u4E0B\u6ED1\u52A8\u6A21\u5757": {fileID: 6939779568828318613}
   "\u6C34\u5E73\u7075\u654F\u5EA6": 5
   "\u5782\u76F4\u7075\u654F\u5EA6": 5
-  "\u9ED8\u8BA4\u6C34\u5E73\u534A\u89D2": 180
-  "\u9ED8\u8BA4\u5782\u76F4\u534A\u89D2": 60
   "\u8863\u67DC\u6C34\u5E73\u534A\u89D2": 60
   "\u8863\u67DC\u5782\u76F4\u534A\u89D2": 30
   "\u9501\u5B9A\u5149\u6807": 1
@@ -494,10 +515,29 @@ MonoBehaviour:
   "\u753B\u5E03": {fileID: 0}
   "\u6C34\u5E73\u7075\u654F\u5EA6": 0.5
   "\u5782\u76F4\u7075\u654F\u5EA6": 0.5
-  "\u9ED8\u8BA4\u6C34\u5E73\u534A\u89D2": 180
-  "\u9ED8\u8BA4\u5782\u76F4\u534A\u89D2": 60
   "\u8863\u67DC\u6C34\u5E73\u534A\u89D2": 60
   "\u8863\u67DC\u5782\u76F4\u534A\u89D2": 30
+--- !u!95 &5007556177162207937
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5918861370456948581}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 884c9dd5b3529cf40886be407e536c1d, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &6559389272697464585
 GameObject:
   m_ObjectHideFlags: 0
@@ -794,7 +834,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HP: 100
+  "\u53D7\u51FB\u540E\u514D\u4F24\u65F6\u95F4": 1
   bloodyScreen: {fileID: 0}
+  playerHealthUI: {fileID: 0}
 --- !u!1001 &6919926939590128634
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿﻿using UnityEngine;
 
 public class Monster : MonoBehaviour
 {   
@@ -40,11 +40,20 @@ public class Monster : MonoBehaviour
         Vector3 targetPos = new Vector3(玩家.position.x, transform.position.y, 玩家.position.z);
         float 当前距离 = Vector3.Distance(transform.position, targetPos);
 
-        bool 怪物能看到玩家 = 玩家在触发器内 && !视线被遮挡();
-
-        if (!怪物能看到玩家 && 当前距离 > 丢失目标距离)
+        if (!玩家在触发器内)
         {
-            进入丢失目标();
+            if (当前距离 > 丢失目标距离)
+            {
+                进入丢失目标();
+            }
+            return;
+        }
+
+        if (!正在播放Idle()) return;
+
+        if (当前距离 <= 停止距离)
+        {
+            CatchPlayer();
             return;
         }
 
@@ -55,15 +64,7 @@ public class Monster : MonoBehaviour
 
         if (上一帧在看 && !这一帧在看)
         {
-            if (当前距离 > 停止距离)
-            {
-                transform.position += (targetPos - transform.position) / 2;
-            }
-
-            if (当前距离 <= 停止距离)
-            {
-                CatchPlayer();
-            }
+            transform.position += (targetPos - transform.position) / 2;
         }
 
         上一帧在看 = 这一帧在看;
@@ -121,7 +122,6 @@ public class Monster : MonoBehaviour
     {
         if (!other.CompareTag("Player")) return;
 
-        玩家在触发器内 = true;
         玩家 = other.transform;
         玩家控制 = other.GetComponent<基础移动控制>();
 
@@ -129,17 +129,39 @@ public class Monster : MonoBehaviour
         {
             丢失目标中 = false;
             上一帧在看 = false;
+            if (animator != null) animator.SetBool("IsAgonizing", false);
+        }
 
+        if (!视线被遮挡())
+        {
+            玩家在触发器内 = true;
+            if (animator != null) animator.SetBool("IsStanding", true);
+        }
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (!other.CompareTag("Player")) return;
+
+        if (玩家 == null) 玩家 = other.transform;
+
+        bool 视线可达 = !视线被遮挡();
+
+        if (视线可达 && !玩家在触发器内)
+        {
+            玩家在触发器内 = true;
+            上一帧在看 = false;
             if (animator != null)
             {
                 animator.SetBool("IsAgonizing", false);
                 animator.SetBool("IsStanding", true);
             }
         }
-        else
+        else if (!视线可达 && 玩家在触发器内)
         {
-            if (animator != null)
-                animator.SetBool("IsStanding", true);
+            玩家在触发器内 = false;
+            上一帧在看 = false;
+            if (animator != null) animator.SetBool("IsStanding", false);
         }
     }
 
@@ -156,8 +178,5 @@ public class Monster : MonoBehaviour
 
         if (animator != null)
             animator.SetBool("IsAttacking", true);
-
-        if (玩家控制 != null)
-            玩家控制.BeCaught();
     }
 }
