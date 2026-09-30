@@ -1,4 +1,4 @@
-﻿﻿using UnityEngine;
+﻿﻿﻿﻿﻿using UnityEngine;
 
 public class Monster : MonoBehaviour
 {   
@@ -13,6 +13,7 @@ public class Monster : MonoBehaviour
 
     [Header("状态名")]
     public string idle状态名 = "Idle";
+    public string 攻击状态名 = "Attack";
 
     private Transform 玩家;
     private bool beCaught触发过;
@@ -31,11 +32,19 @@ public class Monster : MonoBehaviour
 
     void Update()
     {
-        if (beCaught触发过) return;
-
         if (丢失目标中) return;
 
         if (玩家 == null) return;
+
+        if (beCaught触发过)
+        {
+            if (攻击已结束())
+            {
+                beCaught触发过 = false;
+                if (animator != null) animator.SetBool("IsAttacking", false);
+            }
+            return;
+        }
 
         Vector3 targetPos = new Vector3(玩家.position.x, transform.position.y, 玩家.position.z);
         float 当前距离 = Vector3.Distance(transform.position, targetPos);
@@ -86,6 +95,14 @@ public class Monster : MonoBehaviour
 
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
         return stateInfo.IsName(idle状态名) && !animator.IsInTransition(0);
+    }
+
+    private bool 攻击已结束()
+    {
+        if (animator == null) return true;
+        if (animator.IsInTransition(0)) return false;
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+        return !stateInfo.IsName(攻击状态名);
     }
 
     private bool 视线被遮挡()

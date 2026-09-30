@@ -9,6 +9,9 @@ TagManager:
   - Door
   - Flashlight
   - Note
+  - ZombieHand
+  - Target
+  - Wall
   layers:
   - Default
   - TransparentFX
