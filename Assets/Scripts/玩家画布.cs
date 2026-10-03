@@ -68,14 +68,12 @@ public class 玩家画布 : MonoBehaviour
         if (_背包 == null)
         {
             _背包 = FindObjectOfType<Inventory>();
-            Debug.LogWarning($"[玩家画布] 玩家身上没找到 Inventory，用 FindObjectOfType 兜底: {(_背包 != null ? "成功" : "失败")}");
         }
 
         交互 = 全局脚本.玩家 != null ? 全局脚本.玩家.GetComponent<交互检测>() : null;
         if (交互 == null)
         {
             交互 = FindObjectOfType<交互检测>();
-            Debug.LogWarning($"[玩家画布] 玩家身上没找到 交互检测，用 FindObjectOfType 兜底: {(交互 != null ? "成功" : "失败")}");
         }
 
         订阅背包事件();

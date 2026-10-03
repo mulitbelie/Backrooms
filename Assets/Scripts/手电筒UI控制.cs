@@ -5,7 +5,7 @@ public class 手电筒UI控制 : MonoBehaviour
 {
     public Sprite[] 图片ui;
 
-    private FleshLight 手电筒组件;
+    private FlashLight 手电筒组件;
     private Image image组件;
     private bool 已查找过;
 
@@ -21,13 +21,13 @@ public class 手电筒UI控制 : MonoBehaviour
         var 全局 = FindObjectOfType<全局脚本>();
         if (全局 != null && 全局.玩家 != null)
         {
-            手电筒组件 = 全局.玩家.GetComponentInChildren<FleshLight>();
+            手电筒组件 = 全局.玩家.GetComponentInChildren<FlashLight>();
             if (手电筒组件 != null) return;
         }
 
-        手电筒组件 = FindObjectOfType<FleshLight>(true);
+        手电筒组件 = FindObjectOfType<FlashLight>(true);
         if (手电筒组件 == null)
-            Debug.LogWarning("[手电筒] 没找到 FleshLight 组件");
+            Debug.LogWarning("[手电筒] 没找到 FlashLight 组件");
     }
 
     public void 切换手电筒()

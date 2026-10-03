@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FleshLight : MonoBehaviour
+public class FlashLight : MonoBehaviour
 {
     [Header("玩家手上的手电模型（纯外观 prefab，不含 Light 组件）")]
     public GameObject 手上手电模型;
@@ -59,8 +59,15 @@ public class FleshLight : MonoBehaviour
         var mb = e.Item as MonoBehaviour;
         if (mb != null && mb.CompareTag(手电筒Tag))
         {
+            var invItem = e.Item as InventoryItem;
+            // 检查物品是否可访问 （所有父容器都必须isOpen 为 true ）
+            if (invItem != null && !LockableInteractable.IsAccessible(invItem))
+            {
+                Debug.Log("[FleshLight] 手电筒在柜子里，先打开柜门才能拾取");
+                return;
+            }
+
             已拾取 = true;
-            // 拾取后：显示手上的手电模型，但灯光保持关闭
             if (手上手电模型 != null)
                 手上手电模型.SetActive(true);
         }

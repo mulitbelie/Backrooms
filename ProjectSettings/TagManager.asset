@@ -12,6 +12,8 @@ TagManager:
   - ZombieHand
   - Target
   - Wall
+  - FxTemporaire
+  - Weapon
   layers:
   - Default
   - TransparentFX

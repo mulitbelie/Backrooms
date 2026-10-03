@@ -74,7 +74,8 @@ public abstract class LockableInteractable : MonoBehaviour, IInteractable
     {
         isOpen = !isOpen;
     }
-
+    // 检查物品是否可访问 （所有父容器都必须isOpen 为 true ）
+    // 用于检查物品是否在柜子里，是否需要先打开柜门才能拾取
     public static bool IsAccessible(InventoryItem item)
     {
         Transform current = item.transform;
@@ -83,6 +84,14 @@ public abstract class LockableInteractable : MonoBehaviour, IInteractable
             var container = current.GetComponent<LockableInteractable>();
             if (container != null && !container.isFullyOpen)
                 return false;
+
+            for (int i = 0; i < current.childCount; i++)
+            {
+                var childContainer = current.GetChild(i).GetComponent<LockableInteractable>();
+                if (childContainer != null && !childContainer.isFullyOpen)
+                    return false;
+            }
+
             current = current.parent;
         }
         return true;

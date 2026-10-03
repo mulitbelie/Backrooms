@@ -15,6 +15,8 @@ public class InventoryItem : MonoBehaviour, IInventoryItem, IInteractable
     [Header("物品设置")]
     public string itemName = "物品";
     public Sprite itemImage;
+    [Header("放下设置")]
+    public Vector3 dropRotation = Vector3.zero;
     [Header("交互提示")]
     public string 交互提示文本 = "pick up";
 
@@ -45,6 +47,7 @@ public class InventoryItem : MonoBehaviour, IInventoryItem, IInteractable
     public virtual void OnDrop()
     {
         gameObject.SetActive(true);
+        transform.rotation = Quaternion.Euler(dropRotation);
     }
 
     public virtual void OnInteract()
