@@ -14,17 +14,19 @@ TagManager:
   - Wall
   - FxTemporaire
   - Weapon
+  - Magazine
+  - Zombie
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - "\u53EF\u4EA4\u4E92\u7269"
   - Water
   - UI
-  - "\u53EF\u4EA4\u4E92\u7269"
-  - "\u4E0D\u53EF\u89C1\u56FE\u5C42"
-  - "\u5730\u9762"
-  - 
+  - WeaponRender
+  - Wall
+  - Metal
+  - Wood
   - 
   - 
   - 

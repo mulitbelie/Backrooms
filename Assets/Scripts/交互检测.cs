@@ -40,14 +40,10 @@ public class 交互检测 : MonoBehaviour
         // 优先从玩家自身或父级找（支持多玩家各自隔离），找不到再全场景扫描
         if (背包 == null)
         {
-            背包 = GetComponentInParent<Inventory>();
-            if (背包 == null)
-                背包 = FindObjectOfType<Inventory>();
+            背包 = transform.root.GetComponentInChildren<Inventory>();
         }
 
-        // 同样自动查找移动控制组件，后面执行交互前要用它判断玩家状态
-        移动控制 = GetComponentInParent<基础移动控制>();
-        if (移动控制 == null) 移动控制 = FindObjectOfType<基础移动控制>();
+        移动控制 = transform.root.GetComponentInChildren<基础移动控制>();
     }
 
     void Update()
@@ -201,5 +197,6 @@ public class 交互检测 : MonoBehaviour
         }
 
         当前可交互物体 = null;
+        On选中变化?.Invoke(null);
     }
 }

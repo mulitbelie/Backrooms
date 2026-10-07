@@ -14,7 +14,7 @@ public class 跳跃逻辑 : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
         if (全局脚本物体.Length == 0) return null;
         var 全局脚本组件 = 全局脚本物体[0].GetComponent<全局脚本>();
         if (全局脚本组件 == null || 全局脚本组件.玩家 == null) return null;
-        return 全局脚本组件.玩家.GetComponent<基础移动控制>();
+        return 全局脚本组件.玩家.GetComponentInChildren<基础移动控制>();
     }
 
     void 更新图片(bool 按下中)

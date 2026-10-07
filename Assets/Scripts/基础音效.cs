@@ -36,7 +36,9 @@ public class 基础音效 : MonoBehaviour
     void Start()
     {
         状态管理 = GetComponent<角色状态管理>();
+        if (状态管理 == null) 状态管理 = transform.root.GetComponentInChildren<角色状态管理>();
         移动控制 = GetComponent<基础移动控制>();
+        if (移动控制 == null) 移动控制 = transform.root.GetComponentInChildren<基础移动控制>();
         if (步态音效源 == null)
             步态音效源 = gameObject.AddComponent<AudioSource>();
         if (单次音效源 == null)

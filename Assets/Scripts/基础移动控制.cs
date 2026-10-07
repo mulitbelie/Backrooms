@@ -40,6 +40,12 @@ public class 基础移动控制 : MonoBehaviour
     [Header("外部输入")]
     public Vector2 外部输入方向;
 
+    [Header("键盘按键")]
+    public KeyCode 前进键 = KeyCode.W;
+    public KeyCode 后退键 = KeyCode.S;
+    public KeyCode 左移键 = KeyCode.A;
+    public KeyCode 右移键 = KeyCode.D;
+
     private bool 是否在奔跑;
     private float 摇杆同向计时;
     private float 奔跑剩余时间;
@@ -52,15 +58,33 @@ public class 基础移动控制 : MonoBehaviour
     private bool beCaught;//是否被抓住
     private bool 被外部暂停;
 
+    [Header("视角方向")]
+    public Transform 视角旋转节点;
+
     public bool 是否被抓住 => beCaught;
     public bool 被暂停 => beCaught || 被外部暂停;
     public void 设置暂停(bool 值) { 被外部暂停 = 值; }
     void Start()
     {
-        角色控制器组件=GetComponent<CharacterController>();
-        站立原始高度 = 角色控制器组件.height;
-        站立原始中心 = 角色控制器组件.center;
+        角色控制器组件 = GetComponent<CharacterController>();
+        if (角色控制器组件 == null)
+            角色控制器组件 = transform.root.GetComponent<CharacterController>();
+        if (角色控制器组件 == null)
+            角色控制器组件 = transform.root.GetComponentInChildren<CharacterController>();
+        if (角色控制器组件 == null)
+            Debug.LogError("[基础移动控制] 没找到 CharacterController！角色将无法移动");
+        else
+        {
+            站立原始高度 = 角色控制器组件.height;
+            站立原始中心 = 角色控制器组件.center;
+        }
+
+        if (视角旋转节点 == null)
+            视角旋转节点 = transform;
     }
+
+    Vector3 当前右方向() => 视角旋转节点 != null ? 视角旋转节点.right : transform.right;
+    Vector3 当前前方向() => 视角旋转节点 != null ? 视角旋转节点.forward : transform.forward;
 
     public float 移动
     {
@@ -106,9 +130,19 @@ public class 基础移动控制 : MonoBehaviour
             摇杆输入.y = 摇杆组件.Vertical;
         }
 
-        Vector2 合并输入 = 摇杆输入.sqrMagnitude > 外部输入方向.sqrMagnitude ? 摇杆输入 : 外部输入方向;
-        if (合并输入.magnitude > 1f) 合并输入.Normalize();
-        return 合并输入;
+        Vector2 键盘输入 = Vector2.zero;
+        if (Input.GetKey(左移键)) 键盘输入.x -= 1;
+        if (Input.GetKey(右移键)) 键盘输入.x += 1;
+        if (Input.GetKey(后退键)) 键盘输入.y -= 1;
+        if (Input.GetKey(前进键)) 键盘输入.y += 1;
+        if (键盘输入.magnitude > 1f) 键盘输入.Normalize();
+
+        Vector2 最终输入 = 摇杆输入;
+        if (键盘输入.sqrMagnitude > 最终输入.sqrMagnitude) 最终输入 = 键盘输入;
+        if (外部输入方向.sqrMagnitude > 最终输入.sqrMagnitude) 最终输入 = 外部输入方向;
+
+        if (最终输入.magnitude > 1f) 最终输入.Normalize();
+        return 最终输入;
     }
 
     void 地面检测()
@@ -216,15 +250,16 @@ public class 基础移动控制 : MonoBehaviour
         if(是否在下蹲)return;
         角色重力的方向.y = Mathf.Sqrt(跳跃力量 * -2f * 重力);
         在空中移动的值 = 当前输入方向();
-        角色方向 = (transform.right * 在空中移动的值.x + transform.forward * 在空中移动的值.y).normalized;
+        角色方向 = (当前右方向() * 在空中移动的值.x + 当前前方向() * 在空中移动的值.y).normalized;
         if (是否在奔跑) 结束奔跑(false);
     }
 
     void 移动逻辑()
     {
-        if (角色接触地面) 角色方向 = (transform.right * 摇杆方向.x + transform.forward * 摇杆方向.y).normalized;
-        else { 角色在空中方向 = (transform.right * 摇杆方向.x + transform.forward * 摇杆方向.y).normalized; 角色控制器组件.Move(角色在空中方向 * Time.deltaTime * 速度*在空中的速度); }
-        角色控制器组件.Move(角色方向 * Time.deltaTime * 移动速度);
+        if (角色接触地面) 角色方向 = (当前右方向() * 摇杆方向.x + 当前前方向() * 摇杆方向.y).normalized;
+        else { 角色在空中方向 = (当前右方向() * 摇杆方向.x + 当前前方向() * 摇杆方向.y).normalized; 角色控制器组件.Move(角色在空中方向 * Time.deltaTime * 速度*在空中的速度); }
+        Vector3 move = 角色方向 * Time.deltaTime * 移动速度;
+        角色控制器组件.Move(move);
         角色控制器组件.Move(角色重力的方向*Time.deltaTime);
     }
 

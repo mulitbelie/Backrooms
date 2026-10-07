@@ -10,8 +10,8 @@ public class 键盘UI控制 : MonoBehaviour
         if (画布 == null)
         {
             画布 = GetComponent<玩家画布>();
-            if (画布 == null)
-                画布 = FindObjectOfType<玩家画布>();
+            if (画布 == null && 全局脚本.Instance != null)
+                画布 = 全局脚本.Instance.玩家画布;
         }
     }
 

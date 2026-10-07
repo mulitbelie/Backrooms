@@ -15,7 +15,7 @@ public abstract class LockableInteractable : MonoBehaviour, IInteractable
         get
         {
             if (_背包 == null)
-                _背包 = FindObjectOfType<Inventory>();
+                _背包 = 全局脚本.Instance?.玩家?.GetComponentInChildren<Inventory>();
             return _背包;
         }
     }

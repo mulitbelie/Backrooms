@@ -14,6 +14,9 @@ public class FlashLight : MonoBehaviour
     [Header("手电筒道具的 Tag")]
     public string 手电筒Tag = "Flashlight";
 
+    public event Action<bool> OnPickupStateChanged;
+    public event Action<bool> OnLightStateChanged;
+
     private bool 已拾取 = false;
     private bool usingFLightGo = false;
     private Inventory 背包;
@@ -28,8 +31,9 @@ public class FlashLight : MonoBehaviour
         if (fleshLightGo != null)
             fleshLightGo.SetActive(false);
 
-        背包 = GetComponentInParent<Inventory>();
-        if (背包 == null) 背包 = FindObjectOfType<Inventory>();
+        背包 = GetComponent<Inventory>();
+        if (背包 == null) 背包 = GetComponentInParent<Inventory>();
+        if (背包 == null) 背包 = transform.root.GetComponentInChildren<Inventory>();
         if (背包 != null)
         {
             背包.ItemAdded += OnItemAdded;
@@ -37,7 +41,7 @@ public class FlashLight : MonoBehaviour
         }
 
         移动控制 = GetComponentInParent<基础移动控制>();
-        if (移动控制 == null) 移动控制 = FindObjectOfType<基础移动控制>();
+        if (移动控制 == null) 移动控制 = transform.root.GetComponentInChildren<基础移动控制>();
     }
 
     void OnDestroy()
@@ -49,9 +53,6 @@ public class FlashLight : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 背包添加物品时触发 —— 通过 Tag 检测是否拾取了手电筒道具
-    /// </summary>
     void OnItemAdded(object sender, InventoryEventArgs e)
     {
         if (已拾取) return;
@@ -60,7 +61,6 @@ public class FlashLight : MonoBehaviour
         if (mb != null && mb.CompareTag(手电筒Tag))
         {
             var invItem = e.Item as InventoryItem;
-            // 检查物品是否可访问 （所有父容器都必须isOpen 为 true ）
             if (invItem != null && !LockableInteractable.IsAccessible(invItem))
             {
                 Debug.Log("[FleshLight] 手电筒在柜子里，先打开柜门才能拾取");
@@ -70,12 +70,10 @@ public class FlashLight : MonoBehaviour
             已拾取 = true;
             if (手上手电模型 != null)
                 手上手电模型.SetActive(true);
+            OnPickupStateChanged?.Invoke(true);
         }
     }
 
-    /// <summary>
-    /// 背包移除物品时触发 —— 通过 Tag 检测是否放下了手电筒
-    /// </summary>
     void OnItemRemoved(object sender, InventoryEventArgs e)
     {
         if (!已拾取) return;
@@ -84,12 +82,13 @@ public class FlashLight : MonoBehaviour
         if (mb != null && mb.CompareTag(手电筒Tag))
         {
             已拾取 = false;
-            // 放下后：先关灯，再隐藏手上的手电模型
             usingFLightGo = false;
             if (fleshLightGo != null)
                 fleshLightGo.SetActive(false);
             if (手上手电模型 != null)
                 手上手电模型.SetActive(false);
+            OnPickupStateChanged?.Invoke(false);
+            OnLightStateChanged?.Invoke(false);
         }
     }
 
@@ -106,12 +105,8 @@ public class FlashLight : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 切换手电筒开关状态（外部 UI 按钮调用入口）
-    /// </summary>
     public void ToggleFlashlight()
     {
-        // 未拾取手电筒时不允许开关
         if (!已拾取)
         {
             Debug.Log("[FleshLight] 还没有手电筒，先去拾取吧");
@@ -121,20 +116,14 @@ public class FlashLight : MonoBehaviour
         usingFLightGo = !usingFLightGo;
         if (fleshLightGo != null)
             fleshLightGo.SetActive(usingFLightGo);
+        OnLightStateChanged?.Invoke(usingFLightGo);
     }
 
-    /// <summary>
-    /// 获取手电筒当前是否处于开启状态
-    /// </summary>
-    /// <returns>true=已开启，false=已关闭</returns>
     public bool IsOn()
     {
         return usingFLightGo;
     }
 
-    /// <summary>
-    /// 是否已拾取手电筒（UI 可据此决定是否显示手电筒按钮）
-    /// </summary>
     public bool HasFlashlight()
     {
         return 已拾取;

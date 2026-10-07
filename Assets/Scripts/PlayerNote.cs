@@ -103,9 +103,9 @@ public class PlayerNote : MonoBehaviour
     }
     void 设置准星显隐(bool 显示)
     {
-        var 画布 = FindObjectOfType<玩家画布>();
-        if (画布 != null && 画布.准星 != null)
-            画布.准星.gameObject.SetActive(显示);
+        var reticle = FindObjectOfType<ReticleT>();
+        if (reticle != null)
+            reticle.gameObject.SetActive(显示);
     }
     public bool IsShowing => isShowing;
 }

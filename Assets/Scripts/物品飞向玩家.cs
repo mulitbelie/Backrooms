@@ -149,9 +149,9 @@ public class 物品飞向玩家 : MonoBehaviour, IInteractable
 
     void 设置准星显隐(bool 显示)
     {
-        var 画布 = FindObjectOfType<玩家画布>();
-        if (画布 != null && 画布.准星 != null)
-            画布.准星.gameObject.SetActive(显示);
+        var reticle = FindObjectOfType<ReticleT>();
+        if (reticle != null)
+            reticle.gameObject.SetActive(显示);
     }
 
     void 禁用<T>(bool 启用) where T : MonoBehaviour

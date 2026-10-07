@@ -13,7 +13,7 @@ public interface IInventoryItem
 public class InventoryItem : MonoBehaviour, IInventoryItem, IInteractable
 {
     [Header("物品设置")]
-    public string itemName = "物品";
+    public string itemName = "Object";
     public Sprite itemImage;
     [Header("放下设置")]
     public Vector3 dropRotation = Vector3.zero;

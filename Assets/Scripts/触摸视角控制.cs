@@ -51,8 +51,8 @@ public class 触摸视角控制 : MonoBehaviour
 
     void Start()
     {
-        if (画布 == null)
-            画布 = FindObjectOfType<玩家画布>();
+        if (画布 == null && 全局脚本.Instance != null)
+            画布 = 全局脚本.Instance.玩家画布;
     }
 
     void LateUpdate()

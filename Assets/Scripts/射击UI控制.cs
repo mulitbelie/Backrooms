@@ -6,7 +6,6 @@ public class 射击UI控制 : MonoBehaviour
     public GameObject 目标UI;
 
     private Weapon 武器组件;
-    private bool 已查找过武器;
     private bool 使用CanvasGroup隐藏;
     private CanvasGroup canvasGroup;
 
@@ -26,67 +25,64 @@ public class 射击UI控制 : MonoBehaviour
             canvasGroup.blocksRaycasts = false;
             canvasGroup.interactable = false;
             使用CanvasGroup隐藏 = true;
-            Debug.Log("[射击UI] 使用 CanvasGroup 隐藏自身");
         }
         else
         {
             目标UI.SetActive(false);
             使用CanvasGroup隐藏 = false;
-            Debug.Log("[射击UI] SetActive 隐藏目标: " + 目标UI.name);
+        }
+
+        Invoke(nameof(初始化), 0.1f);
+    }
+
+    void 初始化()
+    {
+        查找武器组件();
+        if (武器组件 != null)
+        {
+            武器组件.OnPickupStateChanged += 处理拾取状态;
+            处理拾取状态(武器组件.HasWeapon());
         }
     }
 
-    void Update()
+    void OnDestroy()
     {
-        if (!已查找过武器) 查找武器组件();
-        if (武器组件 == null) return;
+        if (武器组件 != null)
+        {
+            武器组件.OnPickupStateChanged -= 处理拾取状态;
+        }
+    }
 
-        bool 持有枪 = 武器组件.HasWeapon();
-
+    void 处理拾取状态(bool 已持有)
+    {
         if (使用CanvasGroup隐藏)
         {
             if (canvasGroup != null)
             {
-                canvasGroup.alpha = 持有枪 ? 1f : 0f;
-                canvasGroup.blocksRaycasts = 持有枪;
-                canvasGroup.interactable = 持有枪;
+                canvasGroup.alpha = 已持有 ? 1f : 0f;
+                canvasGroup.blocksRaycasts = 已持有;
+                canvasGroup.interactable = 已持有;
             }
         }
         else
         {
-            目标UI.SetActive(持有枪);
+            目标UI.SetActive(已持有);
         }
     }
 
     void 查找武器组件()
     {
-        已查找过武器 = true;
-
-        var 全局 = FindObjectOfType<全局脚本>();
-        if (全局 != null && 全局.玩家 != null)
+        if (全局脚本.Instance != null && 全局脚本.Instance.玩家 != null)
         {
-            武器组件 = 全局.玩家.GetComponentInChildren<Weapon>();
-            if (武器组件 != null)
-            {
-                Debug.Log("[射击UI] 找到 Weapon (从玩家): " + 武器组件.name);
-                return;
-            }
+            武器组件 = 全局脚本.Instance.玩家.GetComponentInChildren<Weapon>();
+            if (武器组件 != null) return;
         }
 
         武器组件 = FindObjectOfType<Weapon>(true);
-        if (武器组件 != null)
-        {
-            Debug.Log("[射击UI] 找到 Weapon (全场景): " + 武器组件.name);
-        }
-        else
-        {
-            Debug.LogWarning("[射击UI] 没找到 Weapon 组件");
-        }
     }
 
     public void 射击按下()
     {
-        if (!已查找过武器) 查找武器组件();
         if (武器组件 == null) return;
 
         武器组件.外部持续射击 = true;

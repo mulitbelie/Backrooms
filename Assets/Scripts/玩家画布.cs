@@ -18,18 +18,14 @@ public class 玩家画布 : MonoBehaviour
     [Header("移动端拾取按钮")]
     public GameObject 拾取按钮;
 
-    [Header("准星")]
-    public Image 准星;
-    public Color 准星默认颜色 = Color.white;
-    public Color 准星可拾取颜色 = new Color(1f, 0.9f, 0.3f, 1f);
-
     [Header("放下设置")]
     public Color 选中颜色 = new Color(1f, 0.9f, 0.3f, 1f);
     public Color 未选中颜色 = Color.white;
 
     private Inventory _背包;
     private 交互检测 交互;
-    private bool 事件已订阅;
+    private bool 背包事件已订阅;
+    private bool 交互事件已订阅;
     private int _选中槽位 = -1;
 
     private GraphicRaycaster 射线;
@@ -50,33 +46,20 @@ public class 玩家画布 : MonoBehaviour
         set { _选中槽位 = value; 更新背包UI(); }
     }
 
-    public 玩家画布 与画布绑定(全局脚本 全局脚本){
-        
+    public void 初始化(全局脚本 全局脚本){
         this.全局脚本 = 全局脚本;
-        return this;
-    }
-
-    public void 初始化玩家引用()
-    {
         if (全局脚本 == null)
         {
             Debug.LogError("[玩家画布] 全局脚本为 null，无法初始化！");
             return;
         }
 
-        _背包 = 全局脚本.玩家 != null ? 全局脚本.玩家.GetComponent<Inventory>() : null;
-        if (_背包 == null)
-        {
-            _背包 = FindObjectOfType<Inventory>();
-        }
+        _背包 = 全局脚本.玩家 != null ? 全局脚本.玩家.GetComponentInChildren<Inventory>() : null;
 
-        交互 = 全局脚本.玩家 != null ? 全局脚本.玩家.GetComponent<交互检测>() : null;
-        if (交互 == null)
-        {
-            交互 = FindObjectOfType<交互检测>();
-        }
+        交互 = 全局脚本.玩家 != null ? 全局脚本.玩家.GetComponentInChildren<交互检测>() : null;
 
         订阅背包事件();
+        订阅交互事件();
         更新背包UI();
         更新拾取提示();
 
@@ -97,98 +80,20 @@ public class 玩家画布 : MonoBehaviour
             事件系统 = es.GetComponent<EventSystem>();
             Debug.LogWarning("[拖拽系统] 场景缺 EventSystem，已自动创建");
         }
-
-        if (准星 == null)
-        {
-            准星 = 自动创建准星();
-        }
-
-        if (准星 != null)
-        {
-            var rt = 准星.rectTransform;
-            rt.anchorMin = new Vector2(0.5f, 0.5f);
-            rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta = new Vector2(28f, 28f);
-            准星.color = 准星默认颜色;
-            准星.raycastTarget = false;
-            准星.gameObject.SetActive(true);
-            准星.transform.SetAsLastSibling();
-        }
     }
 
-    Image 自动创建准星()
+    void 订阅交互事件()
+{
+    if (交互 != null && !交互事件已订阅)
     {
-        Canvas 动态画布 = 找到画布();
-        if (动态画布 == null) { Debug.LogWarning("★★ [准星] 找不到Canvas，无法自动创建"); return null; }
-
-        var go = new GameObject("Crosshair", typeof(RectTransform));
-        go.transform.SetParent(动态画布.transform, false);
-        var img = go.AddComponent<Image>();
-        img.sprite = 生成准星Sprite();
-        img.preserveAspect = true;
-        return img;
+        交互.On选中变化 += _ => { 更新拾取提示(); };
+        交互事件已订阅 = true;
     }
-
-    Sprite 生成准星Sprite()
-    {
-        int size = 64;
-        var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        tex.filterMode = FilterMode.Bilinear;
-
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                bool 中心空洞 = Mathf.Abs(x - size / 2) <= 3 && Mathf.Abs(y - size / 2) <= 3;
-                bool 横线 = Mathf.Abs(y - size / 2) <= 2 && Mathf.Abs(x - size / 2) > 6;
-                bool 竖线 = Mathf.Abs(x - size / 2) <= 2 && Mathf.Abs(y - size / 2) > 6;
-
-                Color c = (横线 || 竖线) && !中心空洞 ? Color.white : new Color(0, 0, 0, 0);
-                tex.SetPixel(x, y, c);
-            }
-        }
-        tex.Apply();
-        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
-    }
+}
 
     void Update()
     {
-        if (_背包 == null)
-            尝试初始化();
-
-        更新拾取提示();
-        更新准星();
         处理拖拽();
-    }
-
-    void 尝试初始化()
-    {
-        if (全局脚本 == null)
-            全局脚本 = FindObjectOfType<全局脚本>();
-
-        if (全局脚本 != null && 全局脚本.玩家 != null)
-        {
-            初始化玩家引用();
-        }
-        else
-        {
-            _背包 = FindObjectOfType<Inventory>();
-            交互 = FindObjectOfType<交互检测>();
-
-            if (_背包 != null)
-            {
-                订阅背包事件();
-                更新背包UI();
-            }
-        }
-    }
-
-    void 更新准星()
-    {
-        if (准星 == null) return;
-        准星.color = (交互 != null && 交互.有可交互物体()) ? 准星可拾取颜色 : 准星默认颜色;
     }
 
     void 处理拖拽()
@@ -257,7 +162,7 @@ public class 玩家画布 : MonoBehaviour
 
         foreach (var r in 结果列表)
         {
-            Image img = r.gameObject.GetComponent<Image>();
+            Image img = r.gameObject.GetComponent<Image>();//尝试从 r.gameObject 中获取 Image 组件 r.gameObject 是射线检测到的物体
             if (img == null) continue;
             for (int i = 0; i < 背包槽位图片.Length; i++)
             {
@@ -355,15 +260,15 @@ public class 玩家画布 : MonoBehaviour
 
     void 订阅背包事件()
     {
-        if (背包 == null || 事件已订阅) return;
+        if (背包 == null || 背包事件已订阅) return;
         背包.ItemAdded += (s, e) => 更新背包UI();
         背包.ItemRemoved += (s, e) => 更新背包UI();
-        事件已订阅 = true;
+        背包事件已订阅 = true;
     }
 
     public void 更新背包UI()
     {
-        if (背包槽位图片 == null) return;
+        if (背包 == null || 背包槽位图片 == null) return;
 
         for (int i = 0; i < 背包槽位图片.Length; i++)
         {

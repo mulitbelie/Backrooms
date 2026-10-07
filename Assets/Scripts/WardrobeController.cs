@@ -106,16 +106,12 @@ public class WardrobeController : MonoBehaviour, IInteractable
         移动控制 = 玩家.GetComponent<基础移动控制>();
         if (移动控制 == null) 移动控制 = 玩家.GetComponentInChildren<基础移动控制>(true);
         if (移动控制 == null) 移动控制 = 玩家.GetComponentInParent<基础移动控制>(true);
-        if (移动控制 == null) 移动控制 = FindObjectOfType<基础移动控制>();
 
         视角控制 = 玩家.GetComponentInChildren<鼠标视角控制>(true);
-        if (视角控制 == null) 视角控制 = FindObjectOfType<鼠标视角控制>();
 
         触摸视角控制 = 玩家.GetComponentInChildren<触摸视角控制>(true);
-        if (触摸视角控制 == null) 触摸视角控制 = FindObjectOfType<触摸视角控制>();
 
         滑动控制 = 玩家.GetComponentInChildren<固定滑动>(true);
-        if (滑动控制 == null) 滑动控制 = FindObjectOfType<固定滑动>();
     }
 
     public string 交互提示

@@ -9,6 +9,7 @@ public class Weapon : MonoBehaviour
     [Header("枪的显示与UI")]
     public GameObject 手上枪模型;
     public string 枪Tag = "Weapon";
+    public int weaponDamage;
 
     //public Camera playerCamera;
     //射击
@@ -20,8 +21,12 @@ public class Weapon : MonoBehaviour
     public int bulletsPerBurst = 1;
     // 剩余连发子弹数
     public int burstBulletsLeft;
-    //Spread
-    public float spreadIntensity;
+    // 射击散射强度
+    [Header("射击散射强度")]
+    public float hipSpreadIntensity;
+    // ADS模式下射击散射强度
+    public float adsSpreadIntensity;
+    private float spreadIntensity;
     // 子弹预制体
     [Header("子弹预制体")]
     public GameObject bulletPrefab;
@@ -47,8 +52,8 @@ public class Weapon : MonoBehaviour
     public Vector3 spawnPosition;
     public Vector3 spawnRotation;
 
-
-
+    // 是否是ADS模式
+    bool isADS;
     // 发射模式 【单发】一次一个有冷却时间 【连发】一次发多个 【自动】一次一个无冷却时间
     public enum ShootingMode
     {
@@ -62,13 +67,26 @@ public class Weapon : MonoBehaviour
     [HideInInspector] public bool 外部持续射击;
     [HideInInspector] public bool 外部点击射击;
 
+    [Header("弹夹设置")]
+    public string magTag = "Magazine";
+
+    public event Action<bool> OnPickupStateChanged;//定义事件：这个事件可以接收一个bool参数
+
+    [Header("瞄准镜")]
+    public ReticleT reticleT;
+
     private bool 已拾取 = false;
     private Inventory 背包;
     private bool 已订阅背包 = false;
+    private Magazine 当前消耗的弹夹;
 
     private void Awake()
     {
+       if (reticleT == null) reticleT = FindObjectOfType<ReticleT>();
+
+       // 初始化是否可以射击
        readyToShoot = true;
+       // 初始化连发子弹数
        burstBulletsLeft = bulletsPerBurst;
 
        if (手上枪模型 != null)
@@ -79,6 +97,7 @@ public class Weapon : MonoBehaviour
        if (animator == null) animator = GetComponent<Animator>();
 
        bulletsLeft = magazineSize;
+       spreadIntensity = hipSpreadIntensity;
 
        if (手上枪模型 != null)
            手上枪模型.SetActive(false);
@@ -88,18 +107,14 @@ public class Weapon : MonoBehaviour
     {
         if (!已订阅背包)
         {
-            背包 = GetComponentInParent<Inventory>();
-            if (背包 == null) 背包 = FindObjectOfType<Inventory>();
+            背包 = GetComponent<Inventory>();
+            if (背包 == null) 背包 = GetComponentInParent<Inventory>();
+            if (背包 == null) 背包 = transform.root.GetComponentInChildren<Inventory>();
             if (背包 != null)
             {
                 背包.ItemAdded += OnItemAdded;
                 背包.ItemRemoved += OnItemRemoved;
                 已订阅背包 = true;
-                Debug.Log($"[Weapon] Update 订阅背包成功: {背包.name}");
-            }
-            else if (Time.frameCount % 120 == 0)
-            {
-                Debug.LogWarning("[Weapon] 还没找到 Inventory...");
             }
         }
 
@@ -117,8 +132,17 @@ public class Weapon : MonoBehaviour
             isShooting = 鼠标射击 || 外部点击射击;
             外部点击射击 = false;
         }
-
-        
+        // ADS模式
+        if(已拾取){ 
+            if(Input.GetMouseButtonDown(1))
+            {
+                EnterADS();
+            }
+            if(Input.GetMouseButtonUp(1))
+            {
+                ExitADS();
+            }
+        }
         if(Input.GetKeyDown(KeyCode.R) && bulletsLeft < magazineSize && isReloading == false)
         {
             Reload();
@@ -149,25 +173,66 @@ public class Weapon : MonoBehaviour
         // 更新子弹显示ui
         if(AmmoManager.Instance.ammoDisplay != null)
         {
-            //BulletsLeft 剩余子弹数     MagazineSize 总子弹数     bulletsPerBurst 每次射击的子弹数 除法应为有子弹是连发
             AmmoManager.Instance.ammoDisplay.text = $"{bulletsLeft/bulletsPerBurst}/{magazineSize/bulletsPerBurst}";
+        }
+        if(AmmoManager.Instance.magazineDisplay != null)
+        {
+            AmmoManager.Instance.magazineDisplay.text = CountMagazinesInInventory().ToString();
+        }
+
+        if (reticleT != null)
+        {
+            reticleT.SetBaseSpread(spreadIntensity * 2f);
         }
 
     }    
+
+    private void EnterADS()
+        {
+            animator.SetTrigger("enterADS");//触发 进入ADS模式动画
+            isADS = true;
+            spreadIntensity = adsSpreadIntensity;//ADS模式下射击散射强度增加
+        }
+    private void ExitADS()
+        {
+            animator.SetTrigger("exitADS");//触发 退出ADS模式动画
+            isADS = false;
+            spreadIntensity = hipSpreadIntensity;//非ADS模式下射击散射强度减少
+        }
+
     private void FireWeapon()
     {
         bulletsLeft--;
         //播放 muzzleEffect
         muzzleEffect.GetComponent<ParticleSystem>().Play();
         //播放开枪动画
-        animator.SetTrigger("RECOIL");
+        if(isADS)
+        {
+            //ADS模式下开枪动画
+            animator.SetTrigger("RECOIL_ADS");
+        }
+        else
+        {
+            //非ADS模式下开枪动画
+            animator.SetTrigger("RECOIL");
+        }
+        
         //播放开枪音效
         全局音频.实例.播放手枪开火();
         readyToShoot = false;
+
+        //开火准星张开
+        reticleT?.AddSpread();
         //计算子弹方向
         Vector3 shootingDirection = CalculateDirectionAndSpread().normalized;
         //发射子弹
         GameObject bullet = Instantiate(bulletPrefab, bulletSpawn.position, Quaternion.identity);
+
+        //bulletDamage设置子弹伤害 传给子弹组件的bulletDamage属性
+        Bullet bul = bullet.GetComponent<Bullet>();//获取子弹组件
+        bul.bulletDamage = weaponDamage;//设置子弹伤害为武器伤害
+
+
         //设置子弹方向
         bullet.transform.forward = shootingDirection;
         Rigidbody bulletRb = bullet.GetComponent<Rigidbody>();
@@ -175,7 +240,9 @@ public class Weapon : MonoBehaviour
 
         // 忽略子弹与武器碰撞体的碰撞，避免子弹出生瞬间卡在枪内
         Collider bulletCollider = bullet.GetComponent<Collider>();
-        Collider[] weaponColliders = GetComponentsInChildren<Collider>();
+        Collider[] weaponColliders = 手上枪模型 != null
+            ? 手上枪模型.GetComponentsInChildren<Collider>()
+            : GetComponentsInChildren<Collider>();
         foreach (var col in weaponColliders)
         {
             Physics.IgnoreCollision(bulletCollider, col, true);
@@ -199,19 +266,53 @@ public class Weapon : MonoBehaviour
 
     }
 
+    private Magazine FindMagazineInInventory()
+    {
+        if (背包 == null) return null;
+        for (int i = 0; i < 背包.Count; i++)
+        {
+            var item = 背包[i];
+            var mb = item as MonoBehaviour;
+            if (mb != null && mb.CompareTag(magTag))
+            {
+                var mag = mb.GetComponent<Magazine>();
+                if (mag != null) return mag;
+            }
+        }
+        return null;
+    }
+
+    private int CountMagazinesInInventory()
+    {
+        if (背包 == null) return 0;
+        int count = 0;
+        for (int i = 0; i < 背包.Count; i++)
+        {
+            var item = 背包[i];
+            var mb = item as MonoBehaviour;
+            if (mb != null && mb.CompareTag(magTag) && mb.GetComponent<Magazine>() != null)
+                count++;
+        }
+        return count;
+    }
+
     private void Reload()
     {
-        // 换弹时，播放换弹夹音效
-         全局音频.实例.播放手枪换弹夹();
-        // 换弹时，如果当前正在换弹，isReloading = true;
+        当前消耗的弹夹 = FindMagazineInInventory();
+        if (当前消耗的弹夹 == null) return;
+        全局音频.实例.播放手枪换弹夹();
         isReloading = true;
         Invoke("ReloadComplete", reloadTime);
     }
 
     private void ReloadComplete()
     {
-        // 换弹完成，重置子弹容量 为最大容量 isReloading 为 false
-        bulletsLeft = magazineSize;
+        if (当前消耗的弹夹 != null && 背包 != null)
+        {
+            bulletsLeft = Mathf.Min(当前消耗的弹夹.ammoCount, magazineSize);
+            背包.DestroyItem(当前消耗的弹夹);
+            当前消耗的弹夹 = null;
+        }
         isReloading = false;
     }
     private IEnumerator RestoreBulletCollision(Collider bulletCollider, Collider[] weaponColliders)
@@ -233,18 +334,21 @@ public class Weapon : MonoBehaviour
         allowReset = true;
     }
 
+    //根据相机方向和随机射线，计算子弹方向
     public Vector3 CalculateDirectionAndSpread()
     {
         Vector3 baseDirection = Camera.main.transform.forward.normalized;
 
-        float x = UnityEngine.Random.Range(-spreadIntensity, spreadIntensity);
-        float y = UnityEngine.Random.Range(-spreadIntensity, spreadIntensity);
+        float radius = UnityEngine.Random.Range(0f, spreadIntensity);
+        float angle = UnityEngine.Random.Range(0f, 360f);
+        float offsetX = Mathf.Cos(angle * Mathf.Deg2Rad) * radius;
+        float offsetY = Mathf.Sin(angle * Mathf.Deg2Rad) * radius;
 
         Vector3 right = Vector3.Cross(baseDirection, Vector3.up).normalized;
         Vector3 up = Vector3.Cross(right, baseDirection).normalized;
 
-        return (baseDirection + right * x + up * y).normalized;
-    } 
+        return (baseDirection + right * offsetX + up * offsetY).normalized;
+    }
 
     //协程，定义多久时间后毁灭子弹
     private IEnumerator DestroyBulletAfterTime(GameObject bullet, float lifeTime)//对象物 时间
@@ -262,28 +366,25 @@ public class Weapon : MonoBehaviour
         }
     }
 
+    //拾取武器
     void OnItemAdded(object sender, InventoryEventArgs e)
     {
-        if (已拾取) return;
-
-        var mb = e.Item as MonoBehaviour;
-        if (mb == null)
-        {
-            Debug.Log("[Weapon] OnItemAdded: e.Item 不是 MonoBehaviour");
-            return;
-        }
-
-        Debug.Log($"[Weapon] OnItemAdded: item={mb.name}, Tag={mb.tag}, 期望Tag={枪Tag}, 匹配={mb.CompareTag(枪Tag)}");
+        if (已拾取) return; //如果已经拾取了武器，就不执行了
+        //做类型过滤 + 安全转换，只在 e.Item 是 MonoBehaviour 脚本组件时，才继续跑后面的代码；不是就直接退出，防止后面代码报错。
+        var mb = e.Item as MonoBehaviour; //拿到 e.Item，尝试转成 MonoBehaviour 脚本；如果失败，就直接返回
+        if (mb == null) return;
 
         if (mb.CompareTag(枪Tag))
         {
             已拾取 = true;
             if (手上枪模型 != null)
                 手上枪模型.SetActive(true);
-            Debug.Log("[Weapon] 成功拾取枪！已拾取=true");
+            reticleT?.SetWeaponHeld(true); //调用准星方法 SetWeaponHeld 
+            OnPickupStateChanged?.Invoke(true);//Invoke()：按下电台的广播按钮，把信号发出去，通知所有监听（订阅）的脚本 ：拾取状态变成 true（可以拾取）
         }
     }
-
+    
+    //放下武器
     void OnItemRemoved(object sender, InventoryEventArgs e)
     {
         if (!已拾取) return;
@@ -297,7 +398,8 @@ public class Weapon : MonoBehaviour
             bulletsLeft = magazineSize;
             if (手上枪模型 != null)
                 手上枪模型.SetActive(false);
-            Debug.Log("[Weapon] 成功丢弃枪！已拾取=false");
+            reticleT?.SetWeaponHeld(false); //不调用准星方法 SetWeaponHeld 
+            OnPickupStateChanged?.Invoke(false);
         }
     }
 
