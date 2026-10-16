@@ -46,6 +46,7 @@ public class 鼠标视角控制 : MonoBehaviour
 
     void Start()
     {
+        //鼠标锁定模式Locked在屏幕中心并隐藏
         if (锁定光标) Cursor.lockState = CursorLockMode.Locked;
     }
 

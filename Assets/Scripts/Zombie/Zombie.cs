@@ -27,8 +27,19 @@ public class Zombie : MonoBehaviour, IHitReceiver
         HP -= damageAmount;
         if (HP <= 0)
         {
-            animator.SetTrigger("IsDie");
-            StartCoroutine(DieCoroutine());
+
+            int randomValue = Random.Range(0, 2);//0或1
+
+            if (randomValue == 0)
+            {
+                animator.SetTrigger("IsDie1");
+            }
+            else
+            {
+                animator.SetTrigger("IsDie2");
+            }
+            
+            StartCoroutine(DieCoroutine());//死亡协程
         }
         else
         {
