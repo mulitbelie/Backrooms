@@ -16,6 +16,7 @@ TagManager:
   - Weapon
   - Magazine
   - Zombie
+  - Waypoints
   layers:
   - Default
   - TransparentFX
@@ -27,10 +28,10 @@ TagManager:
   - Wall
   - Metal
   - Wood
-  - 
+  - "\u4E0D\u53EF\u89C1\u7269\u4F53"
   - Player
-  - 
-  - 
+  - Cube
+  - Sphere
   - 
   - 
   - 

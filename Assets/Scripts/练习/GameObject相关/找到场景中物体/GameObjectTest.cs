@@ -5,6 +5,7 @@ using UnityEngine;
 public class GameObjectTest : MonoBehaviour
 {   
     public GameObject K;
+    public GameObject cube;
     // Start is called before the first frame update
     void Start()
     {
@@ -54,6 +55,26 @@ public class GameObjectTest : MonoBehaviour
         //组件查找多数物体 FindObjectsOfType
         Component[] components = FindObjectsOfType<Collider>();
         Debug.Log(components);
+
+        //创建游戏物体
+        //1.场景中创建一个空游戏物体
+        GameObject gameObject1 = new GameObject("新游戏物体");
+
+        //2.通过场景里现有的游戏物体，游戏资源来克隆
+        GameObject gameObject2 = Instantiate(gameObject1.gameObject);
+        //场景中生成指定的预制体
+        GameObject gameObject3 = Instantiate(cube.gameObject);
+
+        //3.创建原始几何物体
+        GameObject gameObject4 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+
+        //销毁游戏物体
+        //1.直接销毁
+        Destroy(gameObject1);
+        //2.延迟销毁 x秒后销毁
+        Destroy(gameObject2, 2f);
+        //3.销毁指定游戏物体的子游戏物体
+        Destroy(gameObject3.transform.Find("Cube").gameObject);
 
     }
 

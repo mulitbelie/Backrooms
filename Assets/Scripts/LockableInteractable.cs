@@ -82,13 +82,13 @@ public abstract class LockableInteractable : MonoBehaviour, IInteractable
         while (current != null)
         {
             var container = current.GetComponent<LockableInteractable>();
-            if (container != null && !container.isFullyOpen)
+            if (container != null && !container.isOpen)
                 return false;
 
             for (int i = 0; i < current.childCount; i++)
             {
                 var childContainer = current.GetChild(i).GetComponent<LockableInteractable>();
-                if (childContainer != null && !childContainer.isFullyOpen)
+                if (childContainer != null && !childContainer.isOpen)
                     return false;
             }
 

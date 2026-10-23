@@ -7,20 +7,19 @@ public class Monster : MonoBehaviour
     [Range(0f, 180f)]
     public float 玩家静止观察角度 = 50f;
 
-    [Header("丢失目标设置")]
-    public float 丢失目标距离 = 10f;
-    public float 视线检测高度偏移 = 1f;
+    [Header("追赶设置")]
+    public float 追赶范围 = 12f;
+    public float 追赶速度 = 3f;
+    public float 偷窥速度 = 1.5f;
 
-    [Header("状态名")]
-    public string idle状态名 = "Idle";
-    public string 攻击状态名 = "Attack";
+    [Header("丢失目标设置")]
+    public float 丢失目标距离 = 20f;
+    public float 视线检测高度偏移 = 1f;
 
     private Transform 玩家;
     private bool beCaught触发过;
-    private bool 上一帧在看;
     private bool 丢失目标中;
     private bool 玩家在触发器内;
-    private 基础移动控制 玩家控制;
     private Animator animator;
 
     void Start()
@@ -30,6 +29,9 @@ public class Monster : MonoBehaviour
             animator.applyRootMotion = false;
     }
 
+    private bool 追赶中;
+    private bool 已发现玩家;
+
     void Update()
     {
         if (丢失目标中) return;
@@ -38,31 +40,57 @@ public class Monster : MonoBehaviour
 
         if (beCaught触发过)
         {
-            if (攻击已结束())
+            float 攻击中距离 = Vector3.Distance(transform.position, 玩家.position);
+
+            if (攻击中距离 > 停止距离 || 攻击已结束())
             {
                 beCaught触发过 = false;
                 if (animator != null) animator.SetBool("IsAttacking", false);
             }
-            return;
+            else
+            {
+                return;
+            }
         }
 
         Vector3 targetPos = new Vector3(玩家.position.x, transform.position.y, 玩家.position.z);
         float 当前距离 = Vector3.Distance(transform.position, targetPos);
 
-        if (!玩家在触发器内)
+        if (当前距离 > 丢失目标距离)
         {
-            if (当前距离 > 丢失目标距离)
-            {
-                进入丢失目标();
-            }
+            退出追赶();
+            已发现玩家 = false;
+            进入丢失目标();
             return;
         }
 
-        if (!正在播放Idle()) return;
+        if (!玩家在触发器内)
+        {
+            退出追赶();
+            return;
+        }
+
+        if (!正在播放Idle() && !(追赶中 && 正在播放Run())) return;
 
         if (当前距离 <= 停止距离)
         {
+            退出追赶();
             CatchPlayer();
+            return;
+        }
+
+        if (已发现玩家 && 当前距离 <= 追赶范围)
+        {
+            if (!追赶中) 进入追赶();
+
+            Vector3 移动方向 = (targetPos - transform.position).normalized;
+            transform.position += 移动方向 * 追赶速度 * Time.deltaTime;
+            return;
+        }
+
+        if (追赶中)
+        {
+            退出追赶();
             return;
         }
 
@@ -71,19 +99,20 @@ public class Monster : MonoBehaviour
         float 阈值 = Mathf.Cos(玩家静止观察角度 * Mathf.Deg2Rad);
         bool 这一帧在看 = dot >= 阈值;
 
-        if (上一帧在看 && !这一帧在看)
-        {
-            transform.position += (targetPos - transform.position) / 2;
-        }
+        已发现玩家 = true;
 
-        上一帧在看 = 这一帧在看;
+        if (!这一帧在看)
+        {
+            Vector3 移动方向 = (targetPos - transform.position).normalized;
+            transform.position += 移动方向 * 偷窥速度 * Time.deltaTime;
+        }
     }
 
     void LateUpdate()
     {
         if (玩家 == null || beCaught触发过 || 丢失目标中) return;
 
-        if (!正在播放Idle()) return;
+        if (!追赶中 && !正在播放Idle()) return;
 
         Vector3 targetPos = new Vector3(玩家.position.x, transform.position.y, 玩家.position.z);
         transform.LookAt(targetPos);
@@ -94,7 +123,15 @@ public class Monster : MonoBehaviour
         if (animator == null) return true;
 
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-        return stateInfo.IsName(idle状态名) && !animator.IsInTransition(0);
+        return stateInfo.IsName("Idle") && !animator.IsInTransition(0);
+    }
+
+    private bool 正在播放Run()
+    {
+        if (animator == null) return true;
+
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+        return stateInfo.IsName("Run") && !animator.IsInTransition(0);
     }
 
     private bool 攻击已结束()
@@ -102,7 +139,7 @@ public class Monster : MonoBehaviour
         if (animator == null) return true;
         if (animator.IsInTransition(0)) return false;
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-        return !stateInfo.IsName(攻击状态名);
+        return !stateInfo.IsName("Attack");
     }
 
     private bool 视线被遮挡()
@@ -126,7 +163,6 @@ public class Monster : MonoBehaviour
     {
         丢失目标中 = true;
         玩家 = null;
-        玩家控制 = null;
 
         if (animator != null)
         {
@@ -140,12 +176,10 @@ public class Monster : MonoBehaviour
         if (!other.CompareTag("Player")) return;
 
         玩家 = other.transform;
-        玩家控制 = other.GetComponent<基础移动控制>();
 
         if (丢失目标中)
         {
             丢失目标中 = false;
-            上一帧在看 = false;
             if (animator != null) animator.SetBool("IsAgonizing", false);
         }
 
@@ -167,7 +201,6 @@ public class Monster : MonoBehaviour
         if (视线可达 && !玩家在触发器内)
         {
             玩家在触发器内 = true;
-            上一帧在看 = false;
             if (animator != null)
             {
                 animator.SetBool("IsAgonizing", false);
@@ -177,7 +210,6 @@ public class Monster : MonoBehaviour
         else if (!视线可达 && 玩家在触发器内)
         {
             玩家在触发器内 = false;
-            上一帧在看 = false;
             if (animator != null) animator.SetBool("IsStanding", false);
         }
     }
@@ -195,5 +227,35 @@ public class Monster : MonoBehaviour
 
         if (animator != null)
             animator.SetBool("IsAttacking", true);
+    }
+
+    private void 进入追赶()
+    {
+        追赶中 = true;
+        if (animator != null)
+        {
+            animator.SetBool("IsRunning", true);
+        }
+    }
+
+    private void 退出追赶()
+    {
+        追赶中 = false;
+        if (animator != null)
+        {
+            animator.SetBool("IsRunning", false);
+        }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, 追赶范围);
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, 停止距离);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, 丢失目标距离);
     }
 }

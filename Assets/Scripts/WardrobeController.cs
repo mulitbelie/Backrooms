@@ -47,6 +47,7 @@ public class WardrobeController : MonoBehaviour, IInteractable
     鼠标视角控制 视角控制;
     触摸视角控制 触摸视角控制;
     固定滑动 滑动控制;
+    PlayerHideState 躲藏状态;
     bool 之前滑动状态;
     Vector3 之前缩放;
     SphereCollider 触发器;
@@ -112,6 +113,7 @@ public class WardrobeController : MonoBehaviour, IInteractable
         触摸视角控制 = 玩家.GetComponentInChildren<触摸视角控制>(true);
 
         滑动控制 = 玩家.GetComponentInChildren<固定滑动>(true);
+        躲藏状态 = 玩家.GetComponent<PlayerHideState>();
     }
 
     public string 交互提示
@@ -190,6 +192,7 @@ public class WardrobeController : MonoBehaviour, IInteractable
         玩家已躲藏 = true;
         当前状态 = 状态.已躲藏;
         冷却截止时间 = Time.time + 交互冷却秒数;
+        if (躲藏状态 != null) 躲藏状态.SetHiding(true);
     }
 
     IEnumerator 离开衣柜流程()
@@ -228,6 +231,7 @@ public class WardrobeController : MonoBehaviour, IInteractable
         玩家已躲藏 = false;
         当前状态 = 状态.空闲;
         冷却截止时间 = Time.time + 交互冷却秒数;
+        if (躲藏状态 != null) 躲藏状态.SetHiding(false);
     }
 
     IEnumerator 等动画播完(string 状态名)

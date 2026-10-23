@@ -29,7 +29,7 @@ public class 全局音频 : MonoBehaviour
     private AudioSource 手枪开火音源;//内部调用
     private AudioSource 手枪换弹夹音源;//内部调用
     private AudioSource 手枪空弹夹音源;//内部调用
-
+    private AudioSource 吓一跳音源;//内部调用
     void Awake()
     {
         if (实例 != null && 实例 != this)
@@ -78,7 +78,12 @@ public class 全局音频 : MonoBehaviour
         手枪空弹夹音源 = gameObject.AddComponent<AudioSource>();//添加音源组件
         手枪空弹夹音源.playOnAwake = false;
         手枪空弹夹音源.spatialBlend = 0;
-        手枪空弹夹音源.priority = 128;        
+        手枪空弹夹音源.priority = 128;   
+
+        吓一跳音源 = gameObject.AddComponent<AudioSource>();//添加音源组件
+        吓一跳音源.playOnAwake = false;
+        吓一跳音源.spatialBlend = 0;
+        吓一跳音源.priority = 128;   
     }
 
     public void 切换BGM(AudioClip clip)
@@ -116,7 +121,13 @@ public class 全局音频 : MonoBehaviour
         if (手枪空弹夹音源 != null && 手枪空弹夹 != null)//如果没有条件 手枪开火音源 为 null时候 → 直接崩
             手枪空弹夹音源.PlayOneShot(手枪空弹夹, 手枪空弹夹音量);//播放方式PlayOneShot(音频片段  音量) 播放一次 
     }
+    public void 播放一次(AudioClip clip, float vol = 1f)
+    {
+        if (clip == null) return;
+        if (吓一跳音源 != null)
 
+            吓一跳音源.PlayOneShot(clip, Mathf.Clamp01(vol));
+    }
     public void 停BGM() { if (BGM源 != null) BGM源.Stop(); }
     public void 停环境音() { if (环境音源 != null) 环境音源.Stop(); }
     public void 停全部() { 停BGM(); 停环境音(); }

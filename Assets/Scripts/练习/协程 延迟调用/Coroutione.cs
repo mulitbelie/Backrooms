@@ -67,4 +67,8 @@ public class Coroutione : MonoBehaviour
 
         }
     }
+    // yield return null;                // 等待【下一帧】再继续
+    // yield return new WaitForSeconds(1); // 等待真实时间1秒（timeScale会影响）
+    // yield return new WaitForSecondsRealtime(1); // 不受timeScale影响，真实时间
+    // yield return new WaitUntil(() => currentZombniesAlive.Count == 0); // 等到条件成立
 }
