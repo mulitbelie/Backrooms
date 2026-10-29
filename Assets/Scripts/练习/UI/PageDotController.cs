@@ -43,29 +43,37 @@ public class PageDotController : MonoBehaviour
 
     void UpdateDot(int currentIndex)
     {
+        // currentIndex：当前停在哪一页，比如滑到第2页 currentIndex=2
         for (int i = 0; i < dots.Length; i++)
         {
+            // i 是指示器的序号：0、1、2... 依次遍历每一个点
             GameObject itemObj = dots[i];
-            if(itemObj == null)continue;
-            // 1. 获取身上的Image，设置颜色
+            if(itemObj == null)continue;// 如果这个点是空的，直接跳过，不往下跑
+            // 【1】找到小点物体上的Toggle组件
+            Toggle toggle = itemObj.GetComponentInChildren<Toggle>();
+            if (toggle != null)
+            {
+                // 如果当前页码=这个点的序号 → isOn=true（选中），否则false
+                toggle.isOn = (i == currentIndex);
+                // ⚠️ 这一句：把Toggle的过渡效果关掉，否则会有一个过渡动画
+                toggle.transition = Selectable.Transition.None;
+            }
+            else
+            {
+                Debug.LogWarning($"索引{i} Item上没有Toggle组件", itemObj);
+            }
+            // 【2】找这个点下面的Image（圆点本体）
             Image dotImg = dots[i].GetComponentInChildren<Image>();
             if (dotImg != null)
             {
+                
+                //`i == currentIndex`：判断：这个指示器序号，是不是当前页面序号
+                // 如果为真：dotImg.color = activeColor；否则：normalColor
                 dotImg.color = i == currentIndex ? activeColor : normalColor;
             }
             else
             {
                 Debug.LogWarning($"索引{i}的小点物体下没有找到Image！", dots[i]);
-            }
-            // 2. 获取身上的Toggle，设置isOn，控制叶子leaf
-            Toggle toggle = itemObj.GetComponentInChildren<Toggle>();
-            if (toggle != null)
-            {
-                toggle.isOn = (i == currentIndex);
-            }
-            else
-            {
-                Debug.LogWarning($"索引{i} Item上没有Toggle组件", itemObj);
             }
         }
     }

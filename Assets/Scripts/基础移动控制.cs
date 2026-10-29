@@ -107,6 +107,17 @@ public class 基础移动控制 : MonoBehaviour
         set { 摇杆组件 = value; }
     }
 
+    public bool IsMoving
+    {
+        get
+        {
+            Vector2 输入 = 当前输入方向();
+            bool 有输入 = 输入.sqrMagnitude > 0.01f;
+            bool 有速度 = 移动速度 > 0.1f && 角色接触地面;
+            return 有输入 && 有速度;
+        }
+    }
+
     public bool 角色地面检测
     {
         get { return 角色接触地面; }

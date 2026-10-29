@@ -68,12 +68,12 @@ public class LevelScrollRect : MonoBehaviour,IBeginDragHandler,IEndDragHandler
     /// <param name="pageIndex">目标页码 0,1,2...</param>
     public void MoveToPage(int pageIndex)
     {
-        // 防越界判断
         if (pageIndex < 0 || pageIndex >= pagePosition.Length)
             return;
 
         isMoving = true;
         targetPosition = pagePosition[pageIndex];
+        OnPageChanged?.Invoke(pageIndex);
     }
 }
 //就像站队：地上有 3 个定点，你随便站一个地方，有人帮你看，你离哪个定点最近，就把你拉到那个点上。

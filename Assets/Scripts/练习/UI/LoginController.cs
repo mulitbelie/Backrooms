@@ -13,7 +13,7 @@ public class LoginController : MonoBehaviour
     {
         string username = usernameInput.text;
         string password = passwordInput.text;
-        if(username == "admin" && password == "123")
+        if(username == "Peng" && password == "123")
         {
             Debug.Log("登录成功");
             // 登录成功后，跳转到主界面

@@ -428,7 +428,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: baa6db8a99e52ae43908a6bbd3c9b396, type: 2}
+  - {fileID: 2100000, guid: 44a19fbfd8709e14c8ca09742a64e615, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -883,9 +883,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   "\u505C\u6B62\u8DDD\u79BB": 1.9
   "\u73A9\u5BB6\u9759\u6B62\u89C2\u5BDF\u89D2\u5EA6": 50
+  "\u8FFD\u8D76\u8303\u56F4": 12
+  "\u8FFD\u8D76\u901F\u5EA6": 3
+  "\u5077\u7AA5\u901F\u5EA6": 1.5
   "\u4E22\u5931\u76EE\u6807\u8DDD\u79BB": 10
   "\u89C6\u7EBF\u68C0\u6D4B\u9AD8\u5EA6\u504F\u79FB": 1
-  "idle\u72B6\u6001\u540D": Idle
 --- !u!135 &4507859616691777419
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -920,6 +922,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   zombieDamage: 1
+  HP: 100
+  dieDelayTime: 2
+  getHitingDelayTime: 0.5
+  dissolveTime: 1
 --- !u!136 &3883666076504255800
 CapsuleCollider:
   m_ObjectHideFlags: 0
